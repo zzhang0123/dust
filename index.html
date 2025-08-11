@@ -8,7 +8,7 @@
     <meta name="author" content="Cosmic Dust Explorer">
     <title>The Cosmic Dust Story: An Interactive Guide to ISM Grains</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js" integrity="sha384-7lP1j4Y3EB+R8VPUJyQTu6PQCBdnZnJaKPX3W8H85UJP7n6T7aWKKfNjGi7XNlAe" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -388,10 +388,6 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     indexAxis: 'y',
-                    animation: {
-                        duration: 750,
-                        easing: 'easeInOutQuart'
-                    },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
@@ -432,18 +428,12 @@
                         fill: true,
                         borderColor: '#2C3E50',
                         backgroundColor: 'rgba(44, 62, 80, 0.1)',
-                        tension: 0.3,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
+                        tension: 0.3
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    animation: {
-                        duration: 1000,
-                        easing: 'easeInOutQuart'
-                    },
                     plugins: {
                         legend: { display: false },
                         tooltip: { enabled: false }
@@ -467,22 +457,14 @@
                 const infoTitle = document.getElementById('info-title');
                 const infoText = document.getElementById('info-text');
 
-                // Use smooth transition for text updates
-                infoTitle.style.opacity = '0';
-                infoText.style.opacity = '0';
-                
-                setTimeout(() => {
-                    infoTitle.textContent = data.title;
-                    infoText.textContent = data.text;
-                    infoTitle.style.opacity = '1';
-                    infoText.style.opacity = '1';
-                }, 150);
+                infoTitle.textContent = data.title;
+                infoText.textContent = data.text;
 
                 const newColors = baseColors.map((color, index) => {
                     return data.highlight.includes(index) ? highlightColor : color;
                 });
                 gsdChart.data.datasets[0].backgroundColor = newColors;
-                gsdChart.update('active');
+                gsdChart.update();
                 
                 document.querySelectorAll('.observation-btn').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.observation === observation);
@@ -491,7 +473,7 @@
             
             function updateProcess(process) {
                 processChart.data.datasets[0].data = processData[process];
-                processChart.update('active');
+                processChart.update();
                 
                 document.querySelectorAll('.process-btn').forEach(btn => {
                      btn.classList.toggle('bg-[#FEFBF1]', btn.dataset.process === process);
@@ -503,15 +485,10 @@
                 const data = modelData[model];
                 const contentDiv = document.getElementById('model-content');
                 
-                // Smooth transition for model content
-                contentDiv.style.opacity = '0';
-                setTimeout(() => {
-                    contentDiv.innerHTML = `
-                        <h3 class="text-2xl font-bold text-[#2C3E50] mb-4">${data.title}</h3>
-                        <div class="text-gray-700 leading-relaxed">${data.content}</div>
-                    `;
-                    contentDiv.style.opacity = '1';
-                }, 200);
+                contentDiv.innerHTML = `
+                    <h3 class="text-2xl font-bold text-[#2C3E50] mb-4">${data.title}</h3>
+                    <div class="text-gray-700 leading-relaxed">${data.content}</div>
+                `;
                 
                 document.querySelectorAll('.tab-btn').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.tab === model);
@@ -527,31 +504,23 @@
                 el.style.transition = 'opacity 0.3s ease';
             });
 
-            // Event listeners with debouncing for better performance
-            let debounceTimer;
-            function debounce(func, delay) {
-                return function(...args) {
-                    clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(() => func.apply(this, args), delay);
-                };
-            }
-
+            // Event listeners
             document.querySelectorAll('.observation-btn').forEach(button => {
-                button.addEventListener('click', debounce((e) => {
+                button.addEventListener('click', (e) => {
                     updateObservation(e.currentTarget.dataset.observation);
-                }, 100));
+                });
             });
             
             document.querySelectorAll('.process-btn').forEach(button => {
-                button.addEventListener('click', debounce((e) => {
+                button.addEventListener('click', (e) => {
                     updateProcess(e.currentTarget.dataset.process);
-                }, 100));
+                });
             });
 
             document.querySelectorAll('.tab-btn').forEach(button => {
-                button.addEventListener('click', debounce((e) => {
+                button.addEventListener('click', (e) => {
                     updateModel(e.currentTarget.dataset.tab);
-                }, 100));
+                });
             });
 
             // Smooth scroll behavior for navigation links
