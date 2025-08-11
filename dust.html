@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Cosmic Dust Story: An Interactive Guide to ISM Grains</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Cosmic Neutrals -->
+    <!-- Application Structure Plan: A thematic, multi-section SPA designed for non-linear exploration. The structure includes: 1) A Hero section for introduction. 2) An "Observational Pillars" section, the interactive core, where users select an observation (e.g., Extinction, AME) to dynamically see its effect on the grain size distribution (GSD) and the responsible grains. 3) A "Cast of Grains" infographic. 4) A "Galactic Forge" section with an animated chart showing how physical processes (shattering, coagulation) modify the GSD. 5) A "Meet the Models" tabbed interface for comparing theories. 6) A dedicated "AME Deep Dive". This structure was chosen to break down a complex, interconnected topic into explorable themes, prioritizing user discovery and understanding over a passive, linear reading of the source report. It allows users to approach the topic from multiple angles (observation, process, or theory). -->
+    <!-- Visualization & Content Choices: 1. GSD Chart (Observational Pillars): Report Info -> Extinction/Emission/AME data. Goal -> Compare observational constraints. Viz -> Dynamic Bar Chart (Chart.js). Interaction -> Buttons highlight relevant grain sizes and update text. Justification -> Visually connects abstract data to specific grain populations. 2. Process Animation Chart (Galactic Forge): Report Info -> Shattering/Coagulation effects. Goal -> Explain GSD evolution. Viz -> Animated Line Chart (Chart.js). Interaction -> Buttons trigger animations showing GSD changes. Justification -> Makes dynamic processes intuitive. 3. Model Comparator: Report Info -> Summaries of MRN, WD01, THEMIS, etc. Goal -> Organize/Compare theories. Viz -> HTML/CSS Tabs. Interaction -> Click to switch models. Justification -> Standard, space-saving UI for comparison. 4. AME Spinner: Report Info -> Spinning dust theory. Goal -> Inform on a key phenomenon. Viz -> HTML/CSS/JS animated icon. Interaction -> None. Justification -> Simple visual metaphor for a complex physical process. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F9FA;
+            color: #212529;
+        }
+        h1, h2, h3 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+        }
+        .mono {
+            font-family: 'Roboto Mono', monospace;
+        }
+        .nav-link {
+            transition: color 0.3s, border-color 0.3s;
+        }
+        .nav-link:hover {
+            color: #4C6A7A;
+            border-color: #4C6A7A;
+        }
+        .btn-primary {
+            background-color: #2C3E50;
+            color: #F8F9FA;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #4C6A7A;
+        }
+        .btn-secondary {
+            background-color: #E9ECEF;
+            color: #2C3E50;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .btn-secondary.active, .btn-secondary:hover {
+            background-color: #D4AF37;
+            color: #2C3E50;
+        }
+        .tab-btn.active {
+            border-color: #D4AF37;
+            background-color: #FEFBF1;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 50vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .spinning-grain {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fde68a, #facc15);
+            position: relative;
+            animation: spin 2s linear infinite;
+            box-shadow: 0 0 15px #facc15;
+        }
+        .spinning-grain::before, .spinning-grain::after {
+            content: '';
+            position: absolute;
+            width: 120px;
+            height: 2px;
+            background: #9ca3af;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+        }
+        .spinning-grain::before {
+            left: -140px;
+            animation: emit-left 2s linear infinite;
+        }
+        .spinning-grain::after {
+            right: -140px;
+            animation: emit-right 2s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes emit-left {
+            0%, 100% { transform: scaleX(0) translateX(0); opacity: 0; }
+            50% { transform: scaleX(1) translateX(0); opacity: 0.7; }
+        }
+        @keyframes emit-right {
+            0%, 100% { transform: scaleX(0) translateX(0); opacity: 0; }
+            50% { transform: scaleX(1) translateX(0); opacity: 0.7; }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="text-2xl font-bold text-[#2C3E50]">
+                Cosmic Dust Explorer
+            </div>
+            <div class="hidden md:flex space-x-6 text-sm font-semibold">
+                <a href="#pillars" class="nav-link border-b-2 border-transparent pb-1">Observational Pillars</a>
+                <a href="#forge" class="nav-link border-b-2 border-transparent pb-1">The Galactic Forge</a>
+                <a href="#models" class="nav-link border-b-2 border-transparent pb-1">Meet the Models</a>
+                <a href="#ame" class="nav-link border-b-2 border-transparent pb-1">AME Deep Dive</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="hero" class="py-20 md:py-32 text-center bg-gray-50">
+            <div class="container mx-auto px-6">
+                <h1 class="text-4xl md:text-6xl font-bold text-[#2C3E50] mb-4">The Cosmic Dust Story</h1>
+                <p class="text-lg md:text-xl max-w-3xl mx-auto text-gray-600">
+                    A tiny fraction of the cosmos, interstellar dust shapes galaxies, forms stars, and holds the chemical blueprints for planets. This interactive guide explores the science behind its size, composition, and evolution.
+                </p>
+            </div>
+        </section>
+
+        <section id="pillars" class="py-16 md:py-24">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl text-[#2C3E50] mb-4">Observational Pillars</h2>
+                    <p class="max-w-3xl mx-auto text-gray-600">
+                        We can't see individual dust grains, but we can deduce their properties by observing how they interact with light. Select an observation below to see which grains are responsible and how they affect the overall grain size distribution (GSD).
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8">
+                    <button class="btn-secondary px-4 py-2 rounded-full font-semibold text-sm md:text-base observation-btn" data-observation="default">Overview</button>
+                    <button class="btn-secondary px-4 py-2 rounded-full font-semibold text-sm md:text-base observation-btn" data-observation="extinction">Starlight Extinction</button>
+                    <button class="btn-secondary px-4 py-2 rounded-full font-semibold text-sm md:text-base observation-btn" data-observation="emission">Infrared Emission</button>
+                    <button class="btn-secondary px-4 py-2 rounded-full font-semibold text-sm md:text-base observation-btn" data-observation="polarization">Polarization</button>
+                    <button class="btn-secondary px-4 py-2 rounded-full font-semibold text-sm md:text-base observation-btn" data-observation="ame">Anomalous Microwave</button>
+                </div>
+
+                <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                    <div class="grid md:grid-cols-5 gap-8">
+                        <div class="md:col-span-3">
+                            <div class="chart-container">
+                                <canvas id="gsdChart"></canvas>
+                            </div>
+                        </div>
+                        <div id="observation-info" class="md:col-span-2 flex flex-col justify-center">
+                            <h3 id="info-title" class="text-2xl font-bold text-[#2C3E50] mb-3"></h3>
+                            <p id="info-text" class="text-gray-700 leading-relaxed"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="forge" class="py-16 md:py-24 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl text-[#2C3E50] mb-4">The Galactic Forge</h2>
+                    <p class="max-w-3xl mx-auto text-gray-600">
+                        The grain size distribution isn't static. It's constantly being reshaped by powerful physical processes in the ISM. Select a process to see how it sculpts the population of dust grains.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                         <div class="chart-container">
+                            <canvas id="processChart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="space-y-4">
+                             <button class="w-full text-left p-4 rounded-lg process-btn bg-white shadow-sm hover:shadow-md transition-shadow" data-process="base">
+                                <h3 class="font-bold text-lg text-[#2C3E50]">Baseline Distribution</h3>
+                                <p class="text-sm text-gray-600">A starting point representing a mix of grain sizes.</p>
+                            </button>
+                            <button class="w-full text-left p-4 rounded-lg process-btn bg-white shadow-sm hover:shadow-md transition-shadow" data-process="shattering">
+                                <h3 class="font-bold text-lg text-[#2C3E50]">Shattering</h3>
+                                <p class="text-sm text-gray-600">High-speed collisions in shocks break large grains into many smaller fragments.</p>
+                            </button>
+                            <button class="w-full text-left p-4 rounded-lg process-btn bg-white shadow-sm hover:shadow-md transition-shadow" data-process="coagulation">
+                                <h3 class="font-bold text-lg text-[#2C3E50]">Coagulation & Accretion</h3>
+                                <p class="text-sm text-gray-600">In dense, cold clouds, small grains stick together, forming larger, fluffy aggregates.</p>
+                            </button>
+                             <button class="w-full text-left p-4 rounded-lg process-btn bg-white shadow-sm hover:shadow-md transition-shadow" data-process="ratd">
+                                <h3 class="font-bold text-lg text-[#2C3E50]">Radiative Disruption (RATD)</h3>
+                                <p class="text-sm text-gray-600">Intense starlight spins up large, fluffy grains until they fly apart.</p>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="models" class="py-16 md:py-24">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl text-[#2C3E50] mb-4">Meet the Models</h2>
+                    <p class="max-w-3xl mx-auto text-gray-600">
+                        Astrophysicists use theoretical models to explain these observations. Each model has different assumptions and excels at explaining different phenomena. Explore some of the most influential models.
+                    </p>
+                </div>
+
+                <div>
+                    <div class="border-b border-gray-300 mb-6">
+                        <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+                            <button class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="mrn">MRN (1977)</button>
+                            <button class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="wd01">WD01</button>
+                            <button class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="themis">THEMIS</button>
+                            <button class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="hensley">Astrodust+PAH</button>
+                        </nav>
+                    </div>
+                    <div id="model-content" class="bg-white p-6 md:p-8 rounded-xl shadow-lg min-h-[20rem]">
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="ame" class="py-16 md:py-24 bg-[#FEFBF1]">
+             <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl text-[#2C3E50] mb-4">Deep Dive: Anomalous Microwave Emission</h2>
+                    <p class="max-w-3xl mx-auto text-gray-600">
+                        One of the most fascinating discoveries is AME, a faint microwave glow from across the sky. It's not thermal, not synchrotron, but something else entirely—and it's a crucial piece of the dust puzzle.
+                    </p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div class="flex flex-col items-center justify-center">
+                        <div class="spinning-grain mb-6"></div>
+                        <p class="font-semibold text-center">The "Spinning Dust" Model</p>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-[#2C3E50] mb-4">The Tiniest Spinners</h3>
+                        <p class="text-gray-700 leading-relaxed mb-4">
+                            The leading theory for AME is electric dipole radiation from nanometer-sized grains (especially PAHs) spinning at tens of billions of rotations per second.
+                        </p>
+                        <ul class="space-y-3 text-gray-700">
+                            <li class="flex items-start">
+                                <span class="text-[#D4AF37] font-bold mr-3 mt-1">&#10003;</span>
+                                <span><strong>Why so small?</strong> Only the tiniest grains have low enough inertia to be spun up to GHz frequencies by collisions and photon impacts.</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-[#D4AF37] font-bold mr-3 mt-1">&#10003;</span>
+                                <span><strong>Why does it matter?</strong> AME provides a unique window into the physics of the smallest, hardest-to-detect component of interstellar dust and is a critical foreground to remove from Cosmic Microwave Background (CMB) maps.</span>
+                            </li>
+                             <li class="flex items-start">
+                                <span class="text-[#D4AF37] font-bold mr-3 mt-1">&#10003;</span>
+                                <span><strong>Key Evidence:</strong> The model perfectly explains the observed peaked spectrum around 20-40 GHz, the low polarization, and the spatial correlation with thermal dust clouds.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-[#2C3E50] text-white py-8">
+        <div class="container mx-auto px-6 text-center text-sm">
+            <p>Interactive application designed to synthesize and visualize concepts from astrophysical research on ISM dust.</p>
+            <p class="mt-2 opacity-70">Content based on works by Mathis, Draine, Jones, Mattsson, Hensley, and others.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const observationData = {
+                default: {
+                    title: 'A Spectrum of Sizes',
+                    text: 'Interstellar dust isn\'t one-size-fits-all. It spans a huge range, from large molecules (PAHs) to micron-sized grains. Different observational techniques are sensitive to different parts of this size distribution. Explore the pillars to see how.',
+                    highlight: [0, 1, 2, 3, 4]
+                },
+                extinction: {
+                    title: 'Starlight Extinction & Reddening',
+                    text: 'Sub-micron grains (0.01-0.3 μm) are most effective at scattering and absorbing UV and optical light, causing stars to appear dimmer and redder. The famous 2175Å bump is attributed to small carbonaceous grains or PAHs.',
+                    highlight: [1, 2]
+                },
+                emission: {
+                    title: 'Infrared Emission',
+                    text: 'Larger grains (>0.01 μm) absorb starlight and re-radiate it thermally in the far-infrared. The smallest grains and PAHs (<0.01 μm) are stochastically heated by single photons, producing characteristic mid-infrared emission bands.',
+                    highlight: [0, 1, 3, 4]
+                },
+                polarization: {
+                    title: 'Starlight Polarization',
+                    text: 'Only non-spherical, larger grains (~0.1 μm and up) can be efficiently aligned by galactic magnetic fields to polarize starlight. The smallest grains are either spherical or tumble too rapidly to stay aligned.',
+                    highlight: [3, 4]
+                },
+                ame: {
+                    title: 'Anomalous Microwave Emission (AME)',
+                    text: 'This unique signal is produced by the very smallest component: nanometer-sized grains (PAHs and nanoparticles) spinning at billions of rotations per second. They are too small to contribute significantly to extinction or polarization.',
+                    highlight: [0]
+                }
+            };
+
+            const modelData = {
+                mrn: {
+                    title: 'MRN (1977) - The Power-Law Pioneer',
+                    content: `
+                        <p class="mb-4">The Mathis, Rumpl, & Nordsieck model was a foundational breakthrough. It proposed a simple but powerful idea: the number of grains follows a power-law distribution ($n(a) \\propto a^{-3.5}$), meaning small grains are vastly more numerous than large ones.</p>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Core Idea:</strong> A simple power-law size distribution of bare graphite and silicate spheres.</li>
+                            <li><strong>Explains Well:</strong> The average interstellar extinction curve and the 2175Å UV bump (attributing it to graphite).</li>
+                            <li><strong>Limitations:</strong> Cannot explain variations in extinction (different $R_V$ values) or the full range of IR/microwave emission, as it lacks a detailed population of very small grains.</li>
+                        </ul>`
+                },
+                wd01: {
+                    title: 'Weingartner & Draine (2001) - The Small Grains Specialist',
+                    content: `
+                        <p class="mb-4">This model significantly refined the MRN framework by explicitly adding a population of very small grains (VSGs) and Polycyclic Aromatic Hydrocarbons (PAHs). This was crucial for explaining observations beyond simple extinction.</p>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Core Idea:</strong> A more complex, parameterized size distribution including log-normal components for PAHs and VSGs.</li>
+                            <li><strong>Explains Well:</strong> Variations in the extinction curve (different $R_V$), mid-infrared emission bands from PAHs, and provides a framework for spinning dust (AME).</li>
+                            <li><strong>Limitations:</strong> It's primarily a parametric fit to observations, not a self-consistent model of dust evolution from first principles.</li>
+                        </ul>`
+                },
+                themis: {
+                    title: 'THEMIS - The Evolutionary Model',
+                    content: `
+                        <p class="mb-4">The Heterogeneous dust Evolution Model for Interstellar Solids represents a paradigm shift. It treats dust not as a static mix, but as a population that evolves in response to its environment, with properties based on lab-measured analogues.</p>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Core Idea:</strong> Dust is heterogeneous and its properties (composition, structure, size) evolve through processes like accretion and coagulation. Uses amorphous carbon and silicates.</li>
+                            <li><strong>Explains Well:</strong> How dust properties change from the diffuse ISM to dense molecular clouds. Provides a self-consistent picture linking a wide range of observations.</li>
+                            <li><strong>Limitations:</strong> Computationally complex. The full range of dust evolutionary physics is still an active area of research.</li>
+                        </ul>`
+                },
+                hensley: {
+                    title: 'Astrodust+PAH (2023) - A Unified Vision',
+                    content: `
+                        <p class="mb-4">This recent model proposes a significant simplification: instead of separate silicate and carbon grains, large grains are a single, composite material called "astrodust," while nanoparticles are PAHs.</p>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Core Idea:</strong> Large grains are a single composite material ("astrodust") plus a separate PAH population.</li>
+                            <li><strong>Explains Well:</strong> Key polarization observations, like the lack of frequency dependence in far-infrared polarization, which are challenging for two-component models. Offers a unified and parsimonious description.</li>
+                            <li><strong>Limitations:</strong> The exact microphysical structure of "astrodust" is still theoretical. The model is primarily developed for the diffuse ISM.</li>
+                        </ul>`
+                }
+            };
+            
+            const processData = {
+                base: [5, 15, 25, 15, 8],
+                shattering: [18, 25, 15, 5, 2],
+                coagulation: [2, 8, 15, 28, 18],
+                ratd: [10, 20, 10, 8, 4]
+            };
+
+            const gsdLabels = ['PAHs & Nanoparticles (<10 nm)', 'Very Small Grains (10-50 nm)', 'Small Grains (50-100 nm)', 'Medium Grains (100-300 nm)', 'Large Grains (>300 nm)'];
+            const baseColors = ['#9CA3AF', '#6B7280', '#4B5563', '#374151', '#1F2937'];
+            const highlightColor = '#D4AF37';
+
+            const gsdCtx = document.getElementById('gsdChart').getContext('2d');
+            const gsdChart = new Chart(gsdCtx, {
+                type: 'bar',
+                data: {
+                    labels: gsdLabels,
+                    datasets: [{
+                        label: 'Relative Mass Contribution',
+                        data: [1, 1, 1, 1, 1],
+                        backgroundColor: baseColors,
+                        borderColor: '#F8F9FA',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Key contributors to this observation are highlighted.';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false,
+                            grid: { display: false },
+                            max: 1.2
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: {
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const processCtx = document.getElementById('processChart').getContext('2d');
+            const processChart = new Chart(processCtx, {
+                type: 'line',
+                data: {
+                    labels: ['0.01', '0.1', '1', '10', '100'],
+                    datasets: [{
+                        label: 'Number of Grains (log)',
+                        data: processData.base,
+                        fill: true,
+                        borderColor: '#2C3E50',
+                        backgroundColor: 'rgba(44, 62, 80, 0.1)',
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                         tooltip: { enabled: false }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { display: false },
+                            grid: { drawBorder: false, display: false }
+                        },
+                        x: {
+                            title: { display: true, text: 'Grain Size (μm, log scale)'},
+                            grid: { drawBorder: false, display: false }
+                        }
+                    }
+                }
+            });
+
+            function updateObservation(observation) {
+                const data = observationData[observation];
+                const infoTitle = document.getElementById('info-title');
+                const infoText = document.getElementById('info-text');
+
+                infoTitle.textContent = data.title;
+                infoText.textContent = data.text;
+
+                const newColors = baseColors.map((color, index) => {
+                    return data.highlight.includes(index) ? highlightColor : color;
+                });
+                gsdChart.data.datasets[0].backgroundColor = newColors;
+                gsdChart.update();
+                
+                document.querySelectorAll('.observation-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.observation === observation);
+                });
+            }
+            
+            function updateProcess(process) {
+                processChart.data.datasets[0].data = processData[process];
+                processChart.update();
+                
+                document.querySelectorAll('.process-btn').forEach(btn => {
+                     btn.classList.toggle('bg-[#FEFBF1]', btn.dataset.process === process);
+                     btn.classList.toggle('bg-white', btn.dataset.process !== process);
+                });
+            }
+
+            function updateModel(model) {
+                const data = modelData[model];
+                const contentDiv = document.getElementById('model-content');
+                contentDiv.innerHTML = `
+                    <h3 class="text-2xl font-bold text-[#2C3E50] mb-4">${data.title}</h3>
+                    <div class="text-gray-700 leading-relaxed">${data.content}</div>
+                `;
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.tab === model);
+                    btn.classList.toggle('text-[#2C3E50]', btn.dataset.tab === model);
+                    btn.classList.toggle('text-gray-500', btn.dataset.tab !== model);
+                    btn.classList.toggle('border-gray-300', btn.dataset.tab !== model);
+                });
+            }
+
+            document.querySelectorAll('.observation-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    updateObservation(e.currentTarget.dataset.observation);
+                });
+            });
+            
+            document.querySelectorAll('.process-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    updateProcess(e.currentTarget.dataset.process);
+                });
+            });
+
+            document.querySelectorAll('.tab-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    updateModel(e.currentTarget.dataset.tab);
+                });
+            });
+
+            updateObservation('default');
+            updateModel('mrn');
+            updateProcess('base');
+        });
+    </script>
+</body>
+</html>
+
