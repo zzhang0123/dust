@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="An interactive guide to interstellar dust grains, exploring their size distribution, evolution, and observational signatures in the cosmos.">
+    <meta name="keywords" content="astrophysics, interstellar dust, astronomy, cosmic dust, grain size distribution">
+    <meta name="author" content="Cosmic Dust Explorer">
     <title>The Cosmic Dust Story: An Interactive Guide to ISM Grains</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js" integrity="sha384-7lP1j4Y3EB+R8VPUJyQTu6PQCBdnZnJaKPX3W8H85UJP7n6T7aWKKfNjGi7XNlAe" crossorigin="anonymous"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -18,16 +21,18 @@
             font-family: 'Inter', sans-serif;
             background-color: #F8F9FA;
             color: #212529;
+            line-height: 1.6;
         }
         h1, h2, h3 {
             font-family: 'Inter', sans-serif;
             font-weight: 700;
+            line-height: 1.2;
         }
         .mono {
             font-family: 'Roboto Mono', monospace;
         }
         .nav-link {
-            transition: color 0.3s, border-color 0.3s;
+            transition: color 0.3s ease, border-color 0.3s ease;
         }
         .nav-link:hover {
             color: #4C6A7A;
@@ -36,19 +41,21 @@
         .btn-primary {
             background-color: #2C3E50;
             color: #F8F9FA;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
         .btn-primary:hover {
             background-color: #4C6A7A;
+            transform: translateY(-1px);
         }
         .btn-secondary {
             background-color: #E9ECEF;
             color: #2C3E50;
-            transition: background-color 0.3s, color 0.3s;
+            transition: all 0.3s ease;
         }
         .btn-secondary.active, .btn-secondary:hover {
             background-color: #D4AF37;
             color: #2C3E50;
+            transform: translateY(-1px);
         }
         .tab-btn.active {
             border-color: #D4AF37;
@@ -75,7 +82,8 @@
             background: radial-gradient(circle, #fde68a, #facc15);
             position: relative;
             animation: spin 2s linear infinite;
-            box-shadow: 0 0 15px #facc15;
+            box-shadow: 0 0 15px rgba(250, 204, 21, 0.4);
+            will-change: transform;
         }
         .spinning-grain::before, .spinning-grain::after {
             content: '';
@@ -117,10 +125,10 @@
                 Cosmic Dust Explorer
             </div>
             <div class="hidden md:flex space-x-6 text-sm font-semibold">
-                <a href="#pillars" class="nav-link border-b-2 border-transparent pb-1">Observational Pillars</a>
-                <a href="#forge" class="nav-link border-b-2 border-transparent pb-1">The Galactic Forge</a>
-                <a href="#models" class="nav-link border-b-2 border-transparent pb-1">Meet the Models</a>
-                <a href="#ame" class="nav-link border-b-2 border-transparent pb-1">AME Deep Dive</a>
+                <a href="#pillars" class="nav-link border-b-2 border-transparent pb-1" aria-label="Navigate to Observational Pillars section">Observational Pillars</a>
+                <a href="#forge" class="nav-link border-b-2 border-transparent pb-1" aria-label="Navigate to Galactic Forge section">The Galactic Forge</a>
+                <a href="#models" class="nav-link border-b-2 border-transparent pb-1" aria-label="Navigate to Models section">Meet the Models</a>
+                <a href="#ame" class="nav-link border-b-2 border-transparent pb-1" aria-label="Navigate to AME Deep Dive section">AME Deep Dive</a>
             </div>
         </nav>
     </header>
@@ -145,11 +153,11 @@
                 </div>
 
                 <div class="flex flex-wrap justify-center gap-2 md:gap-4 mb-8">
-                    <button class="btn-secondary px-4 py-2 rounded-full font-semibold text-sm md:text-base observation-btn" data-observation="default">Overview</button>
-                    <button class="btn-secondary px-4 py-2 rounded-full font-semibold text-sm md:text-base observation-btn" data-observation="extinction">Starlight Extinction</button>
-                    <button class="btn-secondary px-4 py-2 rounded-full font-semibold text-sm md:text-base observation-btn" data-observation="emission">Infrared Emission</button>
-                    <button class="btn-secondary px-4 py-2 rounded-full font-semibold text-sm md:text-base observation-btn" data-observation="polarization">Polarization</button>
-                    <button class="btn-secondary px-4 py-2 rounded-full font-semibold text-sm md:text-base observation-btn" data-observation="ame">Anomalous Microwave</button>
+                    <button class="btn-secondary px-4 py-2 rounded-full font-semibold text-sm md:text-base observation-btn" data-observation="default" aria-label="Show overview of grain size distribution">Overview</button>
+                    <button class="btn-secondary px-4 py-2 rounded-full font-semibold text-sm md:text-base observation-btn" data-observation="extinction" aria-label="Show starlight extinction data">Starlight Extinction</button>
+                    <button class="btn-secondary px-4 py-2 rounded-full font-semibold text-sm md:text-base observation-btn" data-observation="emission" aria-label="Show infrared emission data">Infrared Emission</button>
+                    <button class="btn-secondary px-4 py-2 rounded-full font-semibold text-sm md:text-base observation-btn" data-observation="polarization" aria-label="Show polarization data">Polarization</button>
+                    <button class="btn-secondary px-4 py-2 rounded-full font-semibold text-sm md:text-base observation-btn" data-observation="ame" aria-label="Show anomalous microwave emission data">Anomalous Microwave</button>
                 </div>
 
                 <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
@@ -185,19 +193,19 @@
                     </div>
                     <div>
                         <div class="space-y-4">
-                             <button class="w-full text-left p-4 rounded-lg process-btn bg-white shadow-sm hover:shadow-md transition-shadow" data-process="base">
+                             <button class="w-full text-left p-4 rounded-lg process-btn bg-white shadow-sm hover:shadow-md transition-all duration-300" data-process="base" aria-label="Show baseline grain size distribution">
                                 <h3 class="font-bold text-lg text-[#2C3E50]">Baseline Distribution</h3>
                                 <p class="text-sm text-gray-600">A starting point representing a mix of grain sizes.</p>
                             </button>
-                            <button class="w-full text-left p-4 rounded-lg process-btn bg-white shadow-sm hover:shadow-md transition-shadow" data-process="shattering">
+                            <button class="w-full text-left p-4 rounded-lg process-btn bg-white shadow-sm hover:shadow-md transition-all duration-300" data-process="shattering" aria-label="Show effect of shattering on grain distribution">
                                 <h3 class="font-bold text-lg text-[#2C3E50]">Shattering</h3>
                                 <p class="text-sm text-gray-600">High-speed collisions in shocks break large grains into many smaller fragments.</p>
                             </button>
-                            <button class="w-full text-left p-4 rounded-lg process-btn bg-white shadow-sm hover:shadow-md transition-shadow" data-process="coagulation">
+                            <button class="w-full text-left p-4 rounded-lg process-btn bg-white shadow-sm hover:shadow-md transition-all duration-300" data-process="coagulation" aria-label="Show effect of coagulation on grain distribution">
                                 <h3 class="font-bold text-lg text-[#2C3E50]">Coagulation & Accretion</h3>
                                 <p class="text-sm text-gray-600">In dense, cold clouds, small grains stick together, forming larger, fluffy aggregates.</p>
                             </button>
-                             <button class="w-full text-left p-4 rounded-lg process-btn bg-white shadow-sm hover:shadow-md transition-shadow" data-process="ratd">
+                             <button class="w-full text-left p-4 rounded-lg process-btn bg-white shadow-sm hover:shadow-md transition-all duration-300" data-process="ratd" aria-label="Show effect of radiative disruption on grain distribution">
                                 <h3 class="font-bold text-lg text-[#2C3E50]">Radiative Disruption (RATD)</h3>
                                 <p class="text-sm text-gray-600">Intense starlight spins up large, fluffy grains until they fly apart.</p>
                             </button>
@@ -218,11 +226,11 @@
 
                 <div>
                     <div class="border-b border-gray-300 mb-6">
-                        <nav class="-mb-px flex space-x-6" aria-label="Tabs">
-                            <button class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="mrn">MRN (1977)</button>
-                            <button class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="wd01">WD01</button>
-                            <button class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="themis">THEMIS</button>
-                            <button class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="hensley">Astrodust+PAH</button>
+                        <nav class="-mb-px flex space-x-6" aria-label="Model comparison tabs">
+                            <button class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="mrn" aria-label="View MRN model details">MRN (1977)</button>
+                            <button class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="wd01" aria-label="View WD01 model details">WD01</button>
+                            <button class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="themis" aria-label="View THEMIS model details">THEMIS</button>
+                            <button class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="hensley" aria-label="View Astrodust+PAH model details">Astrodust+PAH</button>
                         </nav>
                     </div>
                     <div id="model-content" class="bg-white p-6 md:p-8 rounded-xl shadow-lg min-h-[20rem]">
@@ -278,6 +286,8 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Performance optimization: Use requestAnimationFrame for smooth animations
+            let animationId;
 
             const observationData = {
                 default: {
@@ -378,6 +388,10 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     indexAxis: 'y',
+                    animation: {
+                        duration: 750,
+                        easing: 'easeInOutQuart'
+                    },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
@@ -418,15 +432,21 @@
                         fill: true,
                         borderColor: '#2C3E50',
                         backgroundColor: 'rgba(44, 62, 80, 0.1)',
-                        tension: 0.3
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    },
                     plugins: {
                         legend: { display: false },
-                         tooltip: { enabled: false }
+                        tooltip: { enabled: false }
                     },
                     scales: {
                         y: { 
@@ -447,14 +467,22 @@
                 const infoTitle = document.getElementById('info-title');
                 const infoText = document.getElementById('info-text');
 
-                infoTitle.textContent = data.title;
-                infoText.textContent = data.text;
+                // Use smooth transition for text updates
+                infoTitle.style.opacity = '0';
+                infoText.style.opacity = '0';
+                
+                setTimeout(() => {
+                    infoTitle.textContent = data.title;
+                    infoText.textContent = data.text;
+                    infoTitle.style.opacity = '1';
+                    infoText.style.opacity = '1';
+                }, 150);
 
                 const newColors = baseColors.map((color, index) => {
                     return data.highlight.includes(index) ? highlightColor : color;
                 });
                 gsdChart.data.datasets[0].backgroundColor = newColors;
-                gsdChart.update();
+                gsdChart.update('active');
                 
                 document.querySelectorAll('.observation-btn').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.observation === observation);
@@ -463,7 +491,7 @@
             
             function updateProcess(process) {
                 processChart.data.datasets[0].data = processData[process];
-                processChart.update();
+                processChart.update('active');
                 
                 document.querySelectorAll('.process-btn').forEach(btn => {
                      btn.classList.toggle('bg-[#FEFBF1]', btn.dataset.process === process);
@@ -474,10 +502,17 @@
             function updateModel(model) {
                 const data = modelData[model];
                 const contentDiv = document.getElementById('model-content');
-                contentDiv.innerHTML = `
-                    <h3 class="text-2xl font-bold text-[#2C3E50] mb-4">${data.title}</h3>
-                    <div class="text-gray-700 leading-relaxed">${data.content}</div>
-                `;
+                
+                // Smooth transition for model content
+                contentDiv.style.opacity = '0';
+                setTimeout(() => {
+                    contentDiv.innerHTML = `
+                        <h3 class="text-2xl font-bold text-[#2C3E50] mb-4">${data.title}</h3>
+                        <div class="text-gray-700 leading-relaxed">${data.content}</div>
+                    `;
+                    contentDiv.style.opacity = '1';
+                }, 200);
+                
                 document.querySelectorAll('.tab-btn').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.tab === model);
                     btn.classList.toggle('text-[#2C3E50]', btn.dataset.tab === model);
@@ -486,24 +521,54 @@
                 });
             }
 
+            // Add smooth transitions to text elements
+            const textElements = document.querySelectorAll('#info-title, #info-text, #model-content');
+            textElements.forEach(el => {
+                el.style.transition = 'opacity 0.3s ease';
+            });
+
+            // Event listeners with debouncing for better performance
+            let debounceTimer;
+            function debounce(func, delay) {
+                return function(...args) {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => func.apply(this, args), delay);
+                };
+            }
+
             document.querySelectorAll('.observation-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
+                button.addEventListener('click', debounce((e) => {
                     updateObservation(e.currentTarget.dataset.observation);
-                });
+                }, 100));
             });
             
             document.querySelectorAll('.process-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
+                button.addEventListener('click', debounce((e) => {
                     updateProcess(e.currentTarget.dataset.process);
-                });
+                }, 100));
             });
 
             document.querySelectorAll('.tab-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
+                button.addEventListener('click', debounce((e) => {
                     updateModel(e.currentTarget.dataset.tab);
+                }, 100));
+            });
+
+            // Smooth scroll behavior for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
                 });
             });
 
+            // Initialize with default states
             updateObservation('default');
             updateModel('mrn');
             updateProcess('base');
